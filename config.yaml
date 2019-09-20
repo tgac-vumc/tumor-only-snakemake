@@ -1,53 +1,53 @@
 all:
-	REF: /net/nfs/PAT/data/ref/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/version0.6.0/genome.fa
-	THREADS: 8
-	Java_mem: -Xmx4g
-	HG19_DICT: /net/nfs/PAT/data/ref/hg19/hg19.dict
-	targets: /net/nfs/PAT/home/matias/data/manifests/BCNHL_Seq_v3/BCNHLv3_primary_coord.bed
-	genome_build: GRCh37.75
-	dbsnp: /net/nfs/PAT/home/matias/dbSNP/b151/All_20180423.vcf.gz
-	clinvar: /net/nfs/PAT/home/matias/dbSNP/b151/clinvar_20180701.vcf.gz
-	Cosmic: /net/nfs/PAT/home/matias/data/ref/cosmic/hg19_v84_2018/CosmicCodingMuts_BCNHLv3_v84_hg19.vcf
-	gnomAD: /net/nfs/PAT/home/tjitske/dbSNP/gnomAD/2.0.2/retagged_gnomad.exomes.r2.0.2-AF.vcf.gz
-	HMF_PON: /net/nfs/PAT/home/matias/data/blacklist/HMF_PON/PON.vcf.gz
+    REF: /net/nfs/PAT/data/ref/iGenomes/Homo_sapiens/UCSC/hg19/Sequence/BWAIndex/version0.6.0/genome.fa
+    THREADS: 8
+    Java_mem: -Xmx4g
+    HG19_DICT: /net/nfs/PAT/data/ref/hg19/hg19.dict
+    targets: /net/nfs/PAT/home/matias/data/manifests/BCNHL_Seq_v3/BCNHLv3_primary_coord.bed
+    genome_build: GRCh37.75
+    dbsnp: /net/nfs/PAT/home/matias/dbSNP/b151/All_20180423.vcf.gz
+    clinvar: /net/nfs/PAT/home/matias/dbSNP/b151/clinvar_20180701.vcf.gz
+    Cosmic: /net/nfs/PAT/home/matias/data/ref/cosmic/hg19_v84_2018/CosmicCodingMuts_BCNHLv3_v84_hg19.vcf
+    gnomAD: /net/nfs/PAT/home/tjitske/dbSNP/gnomAD/2.0.2/retagged_gnomad.exomes.r2.0.2-AF.vcf.gz
+    HMF_PON: /net/nfs/PAT/home/matias/data/blacklist/HMF_PON/PON.vcf.gz
 
 VarScan_snps:
-	min_cov: 5
-	min_reads2: 2
-	min_avg_qual: 20
-	min_var_freq: 0.01
-	p_value: 0.05
-	strand_filter: 0
-	output_vcf: 1
-	variants: 0
+    min_cov: 5
+    min_reads2: 2
+    min_avg_qual: 20
+    min_var_freq: 0.01
+    p_value: 0.05
+    strand_filter: 0
+    output_vcf: 1
+    variants: 0
 
 VarScan_indels:
-	min_cov: 5
-	min_reads2: 2
-	min_avg_qual: 20
-	min_var_freq: 0.01
-	p_value: 0.05
-	strand_filter: 0
-	output_vcf: 1
-	variants: 0
+    min_cov: 5
+    min_reads2: 2
+    min_avg_qual: 20
+    min_var_freq: 0.01
+    p_value: 0.05
+    strand_filter: 0
+    output_vcf: 1
+    variants: 0
 
 LoFreq:
-	min_cov: 10
-	min_mq: 20
-	min_bq: 20
-	min_alt_bq: 20
-	max_depth: 1000
-	sig: 0.05
+    min_cov: 10
+    min_mq: 20
+    min_bq: 20
+    min_alt_bq: 20
+    max_depth: 1000
+    sig: 0.05
 
 VarScan_Filter:
-	SnpSift_filter: "(GEN[0].SDP>8) & (GEN[0].AD>3) & (GEN[0].FREQ>4.99) & (GEN[0].PVAL<0.05) & (GEN[0].ADF>0) & (GEN[0].ADR>0)"
-	BED_blacklist: /net/nfs/PAT/home/matias/data/blacklist/PON_VarScan_N24_min2POS.bed
-	Gene_blacklist: /net/nfs/PAT/home/matias/data/blacklist/hypervariable_gene_blacklist.bed
+    #SnpSift_filter: "(GEN[0].SDP>8) & (GEN[0].AD>3) & (GEN[0].FREQ>4.99) & (GEN[0].PVAL<0.05) & (GEN[0].ADF>0) & (GEN[0].ADR>0)"
+    BED_blacklist: /net/nfs/PAT/home/matias/data/blacklist/PON_VarScan_N24_min2POS.bed
+    Gene_blacklist: /net/nfs/PAT/home/matias/data/blacklist/hypervariable_gene_blacklist.bed
 
 LoFreq_Filter:
-	af_min: 0.05
-	cov_min: 15
-	sb_alpha: 0.05
-	SnpSift_filter: "(DP4[2]>2) & (DP4[3]>2) & ((na HRUN) | (HRUN<8))"
-	BED_blacklist: /net/nfs/PAT/home/matias/data/blacklist/PON_LoFreq_N24_min2POS_bq20.bed
-	Gene_blacklist: /net/nfs/PAT/home/matias/data/blacklist/hypervariable_gene_blacklist.bed
+    af_min: 0.05
+    cov_min: 15
+    sb_alpha: 0.05
+    #SnpSift_filter: "(DP4[2]>2) & (DP4[3]>2) & ((na HRUN) | (HRUN<8))"
+    BED_blacklist: /net/nfs/PAT/home/matias/data/blacklist/PON_LoFreq_N24_min2POS_bq20.bed
+    Gene_blacklist: /net/nfs/PAT/home/matias/data/blacklist/hypervariable_gene_blacklist.bed

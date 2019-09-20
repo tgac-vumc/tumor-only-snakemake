@@ -8,9 +8,25 @@ rule all:
 #TL je hoeft alleen de laatste output file onder all te zetten, de rest wordt dan automatisch ook gemaakt,
 #ook hoef je maar 1 van de outputs van die rule hier neer te zetten.
 
-rule VarScan_snps:
+rule mpileup:
 	input:
 		bam="../bam/{sample}_indelq_sorted.bam"
+	output:
+		mpileup=temp("../bam/{sample}.mpileup")
+	threads: 1
+	resources:
+		mem_mb=2000
+	params:
+		ref=config["all"]["REF"],
+	shell:
+		"""
+		samtools mpileup -f {params.ref} {input.bam} > {output.mpileup}
+		"""
+
+rule VarScan_snps:
+	input:
+		#bam="../bam/{sample}_indelq_sorted.bam"
+		mpileup=temp("../bam/{sample}.mpileup")
 	output:
 		raw_snps=temp("../VarScan/vcf/{sample}_varscan_snps.vcf")
 	params:
@@ -29,7 +45,7 @@ rule VarScan_snps:
 	log: "../logs/VarScan/{sample}_varscan.txt"
 	shell:
 		"""
-		samtools mpileup -f {params.ref} {input.bam} | java -jar varscan mpileup2snp \
+		varscan mpileup2snp {input.mpileup} \
 		--min-coverage {params.min_cov} \
 		--min-reads2 {params.min_reads2} \
 		--min-avg-qual {params.min_avg_qual} \
@@ -43,7 +59,8 @@ rule VarScan_snps:
 
 rule VarScan_indels:
 	input:
-		bam="../bam/{sample}_indelq_sorted.bam"
+		#bam="../bam/{sample}_indelq_sorted.bam"
+		mpileup=temp("../bam/{sample}.mpileup")
 	output:
 		raw_indels=temp("../VarScan/vcf/{sample}_varscan_indels.vcf"),
 	params:
@@ -61,7 +78,7 @@ rule VarScan_indels:
 	log: "../logs/VarScan/{sample}_varscan.txt" # TODO: nb this is the same file as in VarScan_snps
 	shell:
 		"""
-		samtools mpileup -f {params.ref} {input.bam} | java -jar varscan mpileup2indel  \
+		varscan mpileup2indel {input.mpileup} \
 		--min-coverage {params.min_cov} \
 		--min-reads2 {params.min_reads2} \
 		--min-avg-qual {params.min_avg_qual} \
@@ -131,17 +148,17 @@ rule VarScan_readStatFilter:
 	log: "../logs/VarScan/{sample}_varscan_readStatFilter.txt"
 	shell:
 		"""
-		SnpSift filter -f {input.raw_vcf} {params.SnpSift_filter} > {output.tmp_vcf}
+		SnpSift filter -f {input.raw_vcf} "(GEN[0].SDP>8) & (GEN[0].AD>3) & (GEN[0].FREQ>4.99) & (GEN[0].PVAL<0.05) & (GEN[0].ADF>0) & (GEN[0].ADR>0)" > {output.tmp_vcf}
 		picard SortVcf I={output.tmp_vcf} O={output.filtered_vcf} SD={params.hg19_dict} 2> {log}
 		"""
 
 
 rule LoFreq_readStatFilter:
 	input:
-		raw_vcf="./LoFreq/vcf/raw/{sample}_lofreq.vcf",
+		raw_vcf="../LoFreq/vcf/raw/{sample}_lofreq.vcf",
 	output:
 		tmp_vcf=temp("../LoFreq/vcf/filtered/{sample}_lofreq_tmp.vcf"),
-		unsorted_vcf=("../LoFreq/vcf/filtered/{sample}_lofreq_unsorted.vcf"),
+		unsorted_vcf="../LoFreq/vcf/filtered/{sample}_lofreq_unsorted.vcf",
 		filtered_vcf="../LoFreq/vcf/filtered/{sample}_lofreq_filt.vcf",
 	params:
 		af_min=config["LoFreq_Filter"]["af_min"],
@@ -154,13 +171,8 @@ rule LoFreq_readStatFilter:
 	log: "../logs/LoFreq/{sample}_lofreq_readStatFilter.txt"
 	shell:
 		"""
-		lofreq filter --verbose \
-		--af-min {params.af_min} \
-		--cov-min {params.cov_min} \
-		--sb-alpha {params.sb_alpha} \
-		--sb-incl-indels \
-		-i {input.raw_vcf} -o {output.tmp_vcf}
-		SnpSift filter -f {output.tmp_vcf} {params.SnpSift_filter} > {output.unsorted_vcf}
+		lofreq filter --verbose --af-min {params.af_min} --cov-min {params.cov_min} --sb-alpha {params.sb_alpha} --sb-incl-indels -i {input.raw_vcf} -o {output.tmp_vcf}
+		SnpSift filter -f {output.tmp_vcf} "(DP4[2]>2) & (DP4[3]>2) & ((na HRUN) | (HRUN<8))" > {output.unsorted_vcf}
 		picard SortVcf I={output.unsorted_vcf} O={output.filtered_vcf} SD={params.hg19_dict} 2> {log}
 		"""
 
@@ -228,7 +240,7 @@ rule LoFreq_BlacklistFilter:
 rule Intersect_VariantCalls:
 	input:
 		lofreq_vcf="../LoFreq/vcf/not_blacklisted/{sample}_not_blacklisted.vcf.gz",
-		varscan_vcf="../LoFreq/vcf/not_blacklisted/{sample}_not_blacklisted.vcf.gz",
+		varscan_vcf="../VarScan/vcf/not_blacklisted/{sample}_not_blacklisted.vcf.gz",
 	output:
 		intersect_vcf="../vcf/intersect/{sample}_intersect.vcf",
 		outersect_vcf="../vcf/outersect/{sample}_outersect",
