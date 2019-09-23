@@ -1,5 +1,5 @@
 configfile: "config.yaml"
-(Samples,) = glob_wildcards("../bam/{sample}_indelq_sorted.bam")
+(Samples,) = glob_wildcards("../bam/{sample}_indelq.bam")
 
 rule all:
 	input:
@@ -10,7 +10,7 @@ rule all:
 
 rule mpileup:
 	input:
-		bam="../bam/{sample}_indelq_sorted.bam"
+		bam="../bam/{sample}_indelq.bam"
 	output:
 		mpileup=temp("../bam/{sample}.mpileup")
 	threads: 1
@@ -25,7 +25,7 @@ rule mpileup:
 
 rule VarScan_snps:
 	input:
-		#bam="../bam/{sample}_indelq_sorted.bam"
+		#bam="../bam/{sample}_indelq.bam"
 		mpileup=temp("../bam/{sample}.mpileup")
 	output:
 		raw_snps=temp("../VarScan/vcf/{sample}_varscan_snps.vcf")
@@ -59,7 +59,7 @@ rule VarScan_snps:
 
 rule VarScan_indels:
 	input:
-		#bam="../bam/{sample}_indelq_sorted.bam"
+		#bam="../bam/{sample}_indelq.bam"
 		mpileup=temp("../bam/{sample}.mpileup")
 	output:
 		raw_indels=temp("../VarScan/vcf/{sample}_varscan_indels.vcf"),
@@ -107,7 +107,7 @@ rule VarScan_combine:
 
 rule LoFreq:
 	input:
-		bam="../bam/{sample}_indelq_sorted.bam"
+		bam="../bam/{sample}_indelq.bam"
 	output:
 		raw_snps="../LoFreq/vcf/raw/{sample}_lofreq.vcf"
 	params:
@@ -141,7 +141,7 @@ rule VarScan_readStatFilter:
 		tmp_vcf=temp("../VarScan/vcf/filtered/{sample}_varscan_tmp.vcf"),
 		filtered_vcf="../VarScan/vcf/filtered/{sample}_varscan_filt.vcf",
 	params:
-		SnpSift_filter=config["VarScan_Filter"]["SnpSift_filter"],
+		#SnpSift_filter=config["VarScan_Filter"]["SnpSift_filter"],
 		hg19_dict=config["all"]["HG19_DICT"],
 	conda:
 		"envs/SnpSift.yaml"
@@ -164,7 +164,7 @@ rule LoFreq_readStatFilter:
 		af_min=config["LoFreq_Filter"]["af_min"],
 		cov_min=config["LoFreq_Filter"]["cov_min"],
 		sb_alpha=config["LoFreq_Filter"]["sb_alpha"],
-		SnpSift_filter=config["LoFreq_Filter"]["SnpSift_filter"],
+		#SnpSift_filter=config["LoFreq_Filter"]["SnpSift_filter"],
 		hg19_dict=config["all"]["HG19_DICT"],
 	conda:
 		"envs/lofreq.yaml"
